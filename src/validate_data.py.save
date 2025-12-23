@@ -1,0 +1,181 @@
+import numpy as np
+import pandas as pd
+
+
+def main():
+    prices_path = "data/raw/sp500_adj_close.csv"
+    returns_path = "data/raw/sp500_log_returns.csv"
+
+    prices = pd.read_csv(prices_path, index_col=0, parse_dates=True)
+    returns = pd.read_csv(returns_path, index_col=0, parse_dates=True)
+
+    if prices.shape[1] != 1:
+        raise RuntimeError("Expected 1 column in prices file")
+
+    if returns.shape[1] != 1:
+        raise RuntimeError("Expected 1 column in returns file")
+
+    p = prices.iloc[:, 0]
+    r = returns.iloc[:, 0]
+
+    print("=== SHAPES ===")
+    print("prices:", prices.shape)
+    print("returns:", returns.shape)
+
+    print("\n=== DATE RANGES ===")
+    print("prices:", p.index.min().date(), "→", p.index.max().date())
+    print("returns:", r.index.min().date(), "→", 
+r.index.max().date())
+
+    print("\n=== MISSING VALUES ===")
+    print("prices NaN:", int(p.isna().sum()))
+    print("returns NaN:", int(r.isna().sum()))
+
+    print("\n=== BASIC SANITY CHECKS ===")
+    if (p <= 0).any():
+        raise RuntimeError("Found non-positive prices")
+
+    if not np.isfinite(r).all():
+        raise RuntimeError("Found non-finite values in returns")
+
+    print("\n=== RETURN SUMMARY ===")
+    print(r.describe())
+
+    print("\n=== DEPENfrom 
+__future__ import 
+annotations
+
+import numpy as np
+import pandas as pd
+
+
+def main() -> None:
+    prices_path = "data/raw/sp500_adj_close.csv"
+    returns_path = "data/raw/sp500_log_returns.csv"
+
+    prices = pd.read_csv(prices_path, index_col=0, parse_dates=True)
+    returns = pd.read_csv(returns_path, index_col=0, parse_dates=True)
+
+    if prices.shape[1] != 1:
+        raise RuntimeError(
+            f"Expected 1 column in prices file, got 
+{list(prices.columns)}"
+        )
+    if returns.shape[1] != 1:
+        raise RuntimeError(
+            f"Expected 1 column in returns file, got 
+{list(returns.columns)}"
+        )
+
+    p = prices.iloc[:, 0].rename("adj_close")
+    r = returns.iloc[:, 0].rename("log_return")
+
+    print("=== SHAPES ===")
+    print("prices:", prices.shape)
+    print("returns:", returns.shape)
+
+    print("\n=== DATE RANGES ===")
+    print("prices:", p.index.min().date(), "→", p.index.max().date())
+    print("returns:", r.index.min().date(), "→", 
+r.index.max().date())
+
+    print("\n=== MISSING VALUES ===")
+    print("prices NaN:", int(p.isna().sum()))
+    print("returns NaN:", int(r.isna().sum()))
+
+    print("\n=== BASIC SANITY CHECKS ===")
+    if (p <= 0).any():
+        raise RuntimeError("Found non-positive prices.")
+    if not np.isfinite(r).all():
+        raise RuntimeError("Found non-finite values in returns.")
+
+    print("\n=== RETURN SUMMARY ===")
+    print(r.describe())
+
+    print("\n=== DEPENDENCE CHECKS ===")
+    print("lag-1 autocorr(r):", float(r.autocorr(1)))
+    print("lag-1 autocorr(|r|):", float(r.abs().autocorr(1)))
+
+    print("\n=== CONSISTENCY CHECK ===")
+    r_from_prices = np.log(p / p.shift(1)).dropna()
+    aligned = pd.concat([r, r_from_prices], axis=1, join="inner")
+    max_diff = (aligned.iloc[:, 0] - aligned.iloc[:, 1]).abs().max()
+    print("max |return - log(price ratio)|:", float(max_diff))
+
+    print("\nOK ✅ data validation passed")
+
+
+if __name__ == "__main__":
+    main()from 
+__future__ import 
+annotations
+
+import pandas as pd
+
+
+def main() -> None:
+    path_prices = "data/raw/sp500_adj_close.csv"
+    path_returns = "data/raw/sp500_log_returns.csv"
+
+    prices = pd.read_csv(path_prices, index_col=0, parse_dates=True)
+    returns = pd.read_csv(path_returns, index_col=0, parse_dates=True)
+
+    # Handle either a 1-col DF or a named column
+    if prices.shape[1] != 1:
+        raise RuntimeError(f"Expected 1 column in prices file, got 
+{list(prices.columns)}")
+    if returns.shape[1] != 1:
+        raise RuntimeError(f"Expected 1 column in returns file, got 
+{list(returns.columns)}")
+
+    p = prices.iloc[:, 0].rename("adj_close")
+    r = returns.iloc[:, 0].rename("log_return")
+
+    print("=== SHAPES ===")
+    print("prices:", prices.shape, "returns:", returns.shape)
+
+    print("\n=== DATE RANGES ===")
+    print("prices:", p.index.min().date(), "→", p.index.max().date())
+    print("returns:", r.index.min().date(), "→", r.index.max().date())
+
+    print("\n=== MISSING VALUES ===")
+    print("prices NaN:", int(p.isna().sum()))
+    print("returns NaN:", int(r.isna().sum()))
+
+    print("\n=== BASIC SANITY ===")
+    if (p <= 0).any():
+        raise RuntimeError("Found non-positive prices, which should not 
+happen.")
+    # returns can be any real number; just check they are finite
+    if (~r.replace([float("inf"), float("-inf")], pd.NA).notna()).any():
+        raise RuntimeError("Found inf in returns.")
+
+    print("\n=== RETURN SUMMARY ===")
+    print(r.describe())
+
+    print("\n=== QUICK DEPENDENCE CHECKS ===")
+    print("lag-1 autocorr of r:", float(r.autocorr(lag=1)))
+    print("lag-1 autocorr of |r|:", float(r.abs().autocorr(lag=1)))
+
+    # Consistency check: reconstruct log returns from prices and compare
+    r2 = (p / p.shift(1)).apply(lambda x: None if pd.isna(x) else x)
+    r2 = pd.Series(pd.NA, index=p.index)
+    r2 = (p / p.shift(1)).apply(lambda x: x).astype(float)
+    r_from_prices = (p / p.shift(1)).apply(lambda x: x)
+    r_from_prices = (p / p.shift(1)).apply(lambda x: x)  # ratio
+    r_from_prices = (p / p.shift(1))
+    r_from_prices = r_from_prices.dropna().apply(lambda x: x)
+    r_from_prices = r_from_prices.astype(float)
+    import numpy as np
+    r_from_prices = np.log(r_from_prices).rename("log_return_from_prices")
+
+    aligned = pd.concat([r, r_from_prices], axis=1, join="inner").dropna()
+    max_abs_diff = (aligned.iloc[:, 0] - aligned.iloc[:, 1]).abs().max()
+    print("\n=== CONSISTENCY ===")
+    print("max |return - log(price_ratio)|:", float(max_abs_diff))
+
+    print("\nOK ✅")
+
+
+if __name__ == "__main__":
+    main()
