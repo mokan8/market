@@ -5,7 +5,7 @@ endif
 
 PYTHON := python3
 
-.PHONY: data validate features all
+.PHONY: data validate features validate-features all
 
 data:
 	$(PYTHON) generate_data.py
@@ -16,4 +16,7 @@ validate:
 features:
 	$(PYTHON) src/generate_features.py
 
-all: data validate features
+validate-features:
+	$(PYTHON) src/validate_features.py
+
+all: data validate features validate-features
